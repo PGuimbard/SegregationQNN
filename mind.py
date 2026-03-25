@@ -149,7 +149,7 @@ class Mind:
         return (batch_state, batch_age, batch_action, batch_next_state, batch_done, expected_q_values)
 
 
-    def train(self, type):
+    def train_init(self, type):
         if len(self.memory) < self.BATCH_SIZE:
             return 1
         processes = []
@@ -164,6 +164,38 @@ class Mind:
         for p in processes:
             p.join()
 
+        return 0
+
+    def train(self, type):
+        """Drop-in replacement for Mind.train() — same logic, no subprocess overhead."""
+        if len(self.memory) < self.BATCH_SIZE:
+            return 1
+    
+        data = self.get_data()
+        batch_state, batch_age, batch_action, batch_next_state, batch_done, expected_q_values = data
+    
+        current_q_values = self.network(
+            type * batch_state, batch_age).gather(1, batch_action)
+        max_next_q_values = self.target_network(
+            type * batch_next_state, batch_age).detach().max(1)[0]
+    
+        for i, done in enumerate(batch_done):
+            if not done:
+                expected_q_values[i] += (self.GAMMA * max_next_q_values[i])
+    
+        loss = F.mse_loss(current_q_values, expected_q_values.unsqueeze(1))
+        self.optimizer.zero_grad()
+        loss.backward()
+        for param in self.network.parameters():
+            param.grad.data.clamp_(-1, 1)
+        self.optimizer.step()
+    
+        for target_param, param in zip(self.target_network.parameters(),
+                                       self.network.parameters()):
+            target_param.data.copy_(
+                self.TAU * param.data + target_param.data * (1.0 - self.TAU))
+    
+        self.losses.append(loss.item())
         return 0
 
 class ReplayMemory(object):
@@ -185,14 +217,15 @@ class ReplayMemory(object):
         return len(self.memory)
 
 class DQN(nn.Module):
-    hidden = 16
+    #Modificifaction pour avoir un plus petit reseau (pour la partie interprétation
+    hidden = 4
     def __init__(self, num_features, num_actions):
         super(DQN, self).__init__()
         self.l1 = nn.Conv2d(1, self.hidden, 3) # 3
-        self.l2 = nn.Conv2d(self.hidden, self.hidden, 3) # 5
-        self.l3 = nn.Conv2d(self.hidden, self.hidden, 3) # 7
-        self.l4 = nn.Conv2d(self.hidden, self.hidden, 3) # 9
-        self.l5 = nn.Conv2d(self.hidden, self.hidden, 3) # 11
+        #self.l2 = nn.Conv2d(self.hidden, self.hidden, 3) # 5
+        #self.l3 = nn.Conv2d(self.hidden, self.hidden, 3) # 7
+        #self.l4 = nn.Conv2d(self.hidden, self.hidden, 3) # 9
+        #self.l5 = nn.Conv2d(self.hidden, self.hidden, 3) # 11
         self.out = nn.Linear(self.hidden + 1, num_actions)
         for m in self.modules():
             if isinstance(m, nn.Linear):
@@ -201,7 +234,8 @@ class DQN(nn.Module):
 
     def forward(self, x, age, relu=False):
         [N, a, b, c] = x.size()
-        x = F.relu(self.l5(F.relu(self.l4(F.relu(self.l3(F.relu(self.l2(F.relu(self.l1(x))))))))))
+        #x = F.relu(self.l5(F.relu(self.l4(F.relu(self.l3(F.relu(self.l2(F.relu(self.l1(x))))))))))
+        x = F.relu(self.l1(x))
         x = x.mean(-1).mean(-1)
         x = torch.cat([x, age], dim=1)
         out = self.out(x)
