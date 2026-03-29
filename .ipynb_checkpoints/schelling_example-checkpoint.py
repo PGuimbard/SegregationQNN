@@ -239,7 +239,7 @@ ACTION_NAMES = ['Up', 'Left', 'Down', 'Right', 'Stay']
 ACTION_DIRS = [(-1,0),(0,-1),(1,0),(0,1),(0,0)]
 N_ACTIONS = 5
 
-R = 1 ##à changer selon taille du contexte des agents
+R = 3 ##à changer selon taille du contexte des agents
 PATCH_W = 2*R + 1
 N_CELLS = PATCH_W**2
 N_NEIGH = N_CELLS-1
@@ -367,14 +367,14 @@ def play(map, episodes, iterations, eps=1e-6, log_q=False, log_every=10, n_avg=2
             if log_q and (t % log_every == 0):
                 q_A = get_qvals_avg(
                     map.A_mind, 'A',
-                    f_same=0.5, f_opp=0.1,
+                    f_same=0.042, f_opp=0.05,
                     type_sign=-1,
                     n_avg=n_avg
                 )
 
                 q_B = get_qvals_avg(
                     map.B_mind, 'B',
-                    f_same=0.5, f_opp=0.1,
+                    f_same=0.0425, f_opp=0.05,
                     type_sign=1,
                     n_avg=n_avg
                 )

@@ -218,12 +218,12 @@ class ReplayMemory(object):
 
 class DQN(nn.Module):
     #Modificifaction pour avoir un plus petit reseau (pour la partie interprétation
-    hidden = 4
+    hidden = 16
     def __init__(self, num_features, num_actions):
         super(DQN, self).__init__()
         self.l1 = nn.Conv2d(1, self.hidden, 3) # 3
-        #self.l2 = nn.Conv2d(self.hidden, self.hidden, 3) # 5
-        #self.l3 = nn.Conv2d(self.hidden, self.hidden, 3) # 7
+        self.l2 = nn.Conv2d(self.hidden, self.hidden, 3) # 5
+        self.l3 = nn.Conv2d(self.hidden, self.hidden, 3) # 7
         #self.l4 = nn.Conv2d(self.hidden, self.hidden, 3) # 9
         #self.l5 = nn.Conv2d(self.hidden, self.hidden, 3) # 11
         self.out = nn.Linear(self.hidden + 1, num_actions)
@@ -235,7 +235,7 @@ class DQN(nn.Module):
     def forward(self, x, age, relu=False):
         [N, a, b, c] = x.size()
         #x = F.relu(self.l5(F.relu(self.l4(F.relu(self.l3(F.relu(self.l2(F.relu(self.l1(x))))))))))
-        x = F.relu(self.l1(x))
+        x = F.relu(self.l3(F.relu(self.l2(F.relu(self.l1(x))))))
         x = x.mean(-1).mean(-1)
         x = torch.cat([x, age], dim=1)
         out = self.out(x)
