@@ -129,6 +129,12 @@ The following shell command runs a Schelling simulation named "my_experiment" wi
 
 Details of the parameters are in our paper.
 
+# PAUL ET YANN: NOS NOTEBOOKS
+
+Vous pouvez trouver un notebook exécutable tel quel 'VF_interpretation.ipynb',permettant de créer une nouvelle expérience (penser à changer le nom de l'expérience pour créer des réseaux vierges à entrainer). 
+
+Ce notebook permet de remonter à l'évolution de la fonction Q entraînée, évaluée sur des contextes typiques des agents (200 contextes générés aléatoirement). On présente également les poids des différentes couches après entrainement, mettant en lumière la spécialisation des neurones et une pseudo interprétabilité de ce que le réseau 'regarde' pour calculer les valeurs de la fonction Q des différents états suivants (haut, bas, gauche, droite, pas bouger).
+
 # Terms of Use
 
 We are very pleased if our study and code is helpful in your work. Please cite our work as:
